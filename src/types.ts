@@ -1,4 +1,5 @@
 export type Priority = 'low' | 'medium' | 'high';
+export type Recurrence = 'none' | 'daily' | 'weekly' | 'monthly';
 
 export interface Task {
   id: string;
@@ -8,6 +9,8 @@ export interface Task {
   priority: Priority;
   completed: boolean;
   createdAt: string;
+  recurrence: Recurrence;
+  parentTaskId?: string; // To track instances of the same recurring task
 }
 
 export interface Habit {

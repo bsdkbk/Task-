@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Calendar as CalendarIcon, AlertCircle, CheckCircle2, Circle, ListTodo } from 'lucide-react';
-import { Task, Priority } from '../types';
+import { Plus, Trash2, Calendar as CalendarIcon, AlertCircle, CheckCircle2, Circle, ListTodo, RefreshCcw } from 'lucide-react';
+import { Task, Priority, Recurrence } from '../types';
 import { cn } from '../lib/utils';
-import { format } from 'date-fns';
+import { format, addDays, addWeeks, addMonths } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface TaskTabProps {
@@ -16,7 +16,8 @@ export default function TaskTab({ tasks, setTasks }: TaskTabProps) {
     title: '',
     description: '',
     deadline: '',
-    priority: 'medium' as Priority
+    priority: 'medium' as Priority,
+    recurrence: 'none' as Recurrence
   });
 
   const addTask = (e: React.FormEvent) => {
@@ -27,19 +28,60 @@ export default function TaskTab({ tasks, setTasks }: TaskTabProps) {
       id: crypto.randomUUID(),
       title: newTask.title,
       description: newTask.description,
-      deadline: newTask.deadline,
+      deadline: newTask.deadline || undefined,
       priority: newTask.priority,
       completed: false,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      recurrence: newTask.recurrence
     };
 
     setTasks([task, ...tasks]);
-    setNewTask({ title: '', description: '', deadline: '', priority: 'medium' });
+    setNewTask({ title: '', description: '', deadline: '', priority: 'medium', recurrence: 'none' });
     setIsAdding(false);
   };
 
   const toggleTask = (id: string) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+    const taskIndex = tasks.findIndex(t => t.id === id);
+    if (taskIndex === -1) return;
+
+    const task = tasks[taskIndex];
+    const isCompleting = !task.completed;
+
+    // Update the current task
+    const updatedTasks = tasks.map(t => t.id === id ? { ...t, completed: isCompleting } : t);
+
+    // If completing a recurring task, create the next instance
+    if (isCompleting && task.recurrence !== 'none') {
+      const nextDeadline = task.deadline ? new Date(task.deadline) : new Date();
+      let newDeadline: Date;
+
+      switch (task.recurrence) {
+        case 'daily':
+          newDeadline = addDays(nextDeadline, 1);
+          break;
+        case 'weekly':
+          newDeadline = addWeeks(nextDeadline, 1);
+          break;
+        case 'monthly':
+          newDeadline = addMonths(nextDeadline, 1);
+          break;
+        default:
+          newDeadline = nextDeadline;
+      }
+
+      const nextTask: Task = {
+        ...task,
+        id: crypto.randomUUID(),
+        completed: false,
+        deadline: newDeadline.toISOString().split('T')[0],
+        createdAt: new Date().toISOString(),
+        parentTaskId: task.parentTaskId || task.id
+      };
+
+      setTasks([nextTask, ...updatedTasks]);
+    } else {
+      setTasks(updatedTasks);
+    }
   };
 
   const deleteTask = (id: string) => {
@@ -91,29 +133,54 @@ export default function TaskTab({ tasks, setTasks }: TaskTabProps) {
             />
             
             <div className="flex flex-wrap gap-4 items-center justify-between pt-2">
-              <div className="flex gap-2">
-                {(['low', 'medium', 'high'] as Priority[]).map(p => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setNewTask({ ...newTask, priority: p })}
-                    className={cn(
-                      "px-3 py-1 rounded-full text-xs font-medium capitalize transition-all",
-                      newTask.priority === p 
-                        ? "bg-[#C15F3C] text-white" 
-                        : "bg-[#49454F] text-[#CAC4D0] hover:bg-[#C15F3C]/10"
-                    )}
-                  >
-                    {p}
-                  </button>
-                ))}
+              <div className="flex flex-col gap-3 w-full">
+                <div className="flex gap-2">
+                  {(['low', 'medium', 'high'] as Priority[]).map(p => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setNewTask({ ...newTask, priority: p })}
+                      className={cn(
+                        "px-3 py-1 rounded-full text-xs font-medium capitalize transition-all",
+                        newTask.priority === p 
+                          ? "bg-[#C15F3C] text-white" 
+                          : "bg-[#49454F] text-[#CAC4D0] hover:bg-[#C15F3C]/10"
+                      )}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+                
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="text-[10px] font-bold text-[#CAC4D0] uppercase tracking-wider mr-1">Repeat:</span>
+                  {(['none', 'daily', 'weekly', 'monthly'] as Recurrence[]).map(r => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setNewTask({ ...newTask, recurrence: r })}
+                      className={cn(
+                        "px-2 py-1 rounded-lg text-[10px] font-medium capitalize transition-all",
+                        newTask.recurrence === r 
+                          ? "bg-[#C15F3C]/20 text-[#C15F3C] border border-[#C15F3C]" 
+                          : "bg-[#49454F]/30 text-[#CAC4D0] border border-transparent hover:bg-[#49454F]"
+                      )}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <input
-                type="date"
-                className="text-xs bg-[#49454F] text-[#CAC4D0] px-3 py-1 rounded-full border-none focus:ring-0 color-scheme-dark"
-                value={newTask.deadline}
-                onChange={e => setNewTask({ ...newTask, deadline: e.target.value })}
-              />
+
+              <div className="flex items-center gap-2 w-full pt-2">
+                <CalendarIcon className="w-4 h-4 text-[#CAC4D0]" />
+                <input
+                  type="date"
+                  className="text-xs bg-[#49454F] text-[#CAC4D0] px-3 py-1 rounded-full border-none focus:ring-0 color-scheme-dark flex-1"
+                  value={newTask.deadline}
+                  onChange={e => setNewTask({ ...newTask, deadline: e.target.value })}
+                />
+              </div>
             </div>
 
             <div className="flex gap-3 pt-4">
@@ -173,6 +240,12 @@ export default function TaskTab({ tasks, setTasks }: TaskTabProps) {
                   <div className="flex items-center gap-1 text-[10px] font-medium text-[#C15F3C] bg-[#49454F] px-2 py-0.5 rounded-full">
                     <CalendarIcon className="w-3 h-3" />
                     {format(new Date(task.deadline), 'MMM d')}
+                  </div>
+                )}
+                {task.recurrence !== 'none' && (
+                  <div className="flex items-center gap-1 text-[10px] font-medium text-[#C15F3C] bg-[#C15F3C]/10 px-2 py-0.5 rounded-full border border-[#C15F3C]/20">
+                    <RefreshCcw className="w-3 h-3" />
+                    {task.recurrence}
                   </div>
                 )}
                 <div className={cn(
