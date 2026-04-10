@@ -1,7 +1,3 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
 ## 🚀 Overview
 TaskFlow is a sleek, intuitive task management application designed to help users bridge the gap between "doing" and "analyzing." By categorizing tasks by priority and recurrence, and providing visual feedback through a progress heatmap, TaskFlow turns productivity into a measurable habit.
 ## ✨ Features
