@@ -1,0 +1,5 @@
+{
+  "name": "DailyPulse",
+  "description": "A Material Design task manager with habits, calendar, and GitHub-style progress tracking.",
+  "requestFramePermissions": []
+}
