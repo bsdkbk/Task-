@@ -1,0 +1,20 @@
+{
+  "short_name": "DailyPulse",
+  "name": "DailyPulse Task Manager",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/daily-pulse/192/192",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://picsum.photos/seed/daily-pulse/512/512",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1C1B1F",
+  "background_color": "#1C1B1F"
+}

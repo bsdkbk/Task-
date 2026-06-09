@@ -1,0 +1,6 @@
+{
+	"appId": "com.dailypulse.app",
+	"appName": "DailyPulse",
+	"webDir": "dist",
+	"bundledWebRuntime": false
+}

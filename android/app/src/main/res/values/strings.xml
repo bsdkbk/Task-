@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DailyPulse</string>
+    <string name="title_activity_main">DailyPulse</string>
+    <string name="package_name">com.dailypulse.app</string>
+    <string name="custom_url_scheme">com.dailypulse.app</string>
+</resources>
